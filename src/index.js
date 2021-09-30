@@ -91,18 +91,25 @@ app.put("/todos/:id", verifyExistsUserAccount, (request, response) => {
   return response.json(todo);
 });
 
-app.patch("/todos/:id/done", verifyExistsUserAccount, (request, response) => {
+app.patch("/todos/:id", verifyExistsUserAccount, (request, response) => {
   const { user } = request;
 
-  const id = request.params;
+  const { id } = request.query;
+  const { title, deadline } = request.body;
 
-  const todo = user.todos.find((todo) => todo.id == id);
+  const todo = user.todos.map((newTodo) => {
+    if (newTodo.id === id)
+      return {
+        ...newTodo,
+        done: true,
+      };
+  });
+
+  console.log([todo]);
 
   if (!todo) {
-    return response.status(404).json({ error: "todo not exists" });
+    return response.status(404).json({ error: "Todo not found!" });
   }
-
-  todo.done = true;
 
   return response.json(todo);
 });
@@ -110,17 +117,18 @@ app.patch("/todos/:id/done", verifyExistsUserAccount, (request, response) => {
 app.delete("/todos/:id", verifyExistsUserAccount, (request, response) => {
   const { user } = request;
 
-  const id = request.params;
+  const { id } = request.query;
 
-  const todoIndex = user.todos.findIndex((todo) => todo.id == id);
+  const todo = user.todos.map((newTodo) => {
+    return {
+      ...newTodo,
+    };
+  });
 
-  if (!todoIndex === -1) {
-    return response.status(404).json({ error: "Todo not exists" });
-  }
+  const indexTodo = todo.findIndex((indexTodo) => indexTodo.id === id);
+  todo.splice(indexTodo, 1);
 
-  user.todo.splice(todoIndex, 1);
-
-  return response.status(204).json(users);
+  return response.status(204).json(todo);
 });
 
 app.listen(8080);
